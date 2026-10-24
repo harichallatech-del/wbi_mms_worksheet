@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>WBI MMS</title>
+    <link rel="stylesheet" href="./styles.css" />
+    <script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
+  </head>
+  <body>
+    <main class="app-shell">
+      <header><span class="brand">WBI</span><div><strong>WBI – MMS</strong><small id="screen-name">Connecting to workbook…</small></div></header>
+      <p id="notice" role="status" aria-live="polite"></p>
+      <section class="panel">
+        <h1 id="form-title">Add record</h1>
+        <form id="record-form"></form>
+      </section>
+      <section class="panel">
+        <div class="list-heading"><h2>Records</h2><button id="refresh" type="button" class="quiet">Refresh</button></div>
+        <label class="search-label" for="search">Search records</label>
+        <input id="search" type="search" placeholder="Search by name or date" />
+        <div class="table-wrap"><table><thead id="record-head"></thead><tbody id="record-body"></tbody></table></div>
+        <nav class="pager" aria-label="Record pages">
+          <button id="previous" type="button">Previous</button>
+          <span id="page-label">Page 1 of 1</span>
+          <button id="next" type="button">Next</button>
+        </nav>
+      </section>
+      <footer>Workbook permissions still apply. API writes use the approved WBI submission service.</footer>
+    </main>
+  </body>
+</html>

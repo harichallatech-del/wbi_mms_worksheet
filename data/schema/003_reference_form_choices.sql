@@ -1,0 +1,58 @@
+-- Source-grounded, opt-in form choices copied from the WBI source tree.
+-- These are references only; live WBI API lookups remain authoritative.
+CREATE TABLE IF NOT EXISTS reference_form_choices (
+  choice_id INTEGER PRIMARY KEY,
+  choice_group TEXT NOT NULL,
+  choice_value TEXT NOT NULL,
+  line_scope TEXT NOT NULL DEFAULT '',
+  source_kind TEXT NOT NULL CHECK (source_kind IN ('backend_seeder','frontend_hardcoded','business_reference')),
+  source_location TEXT NOT NULL,
+  selectable INTEGER NOT NULL DEFAULT 0 CHECK (selectable IN (0,1)),
+  notes TEXT NOT NULL,
+  UNIQUE(choice_group, choice_value, line_scope)
+);
+
+INSERT OR IGNORE INTO reference_form_choices
+  (choice_group,choice_value,line_scope,source_kind,source_location,selectable,notes)
+VALUES
+  ('raw_material','5.5 MM Rod','','frontend_hardcoded','reactjs-frontend-v1/src/app/components/stock_position/StockForm.tsx:16',0,'Legacy Stock form option; source warns it may not match the current persisted raw_material master.'),
+  ('raw_material','Powder','','frontend_hardcoded','reactjs-frontend-v1/src/app/components/stock_position/StockForm.tsx:16',0,'Legacy Stock form option; source warns it may not match the current persisted raw_material master.'),
+  ('raw_material','Carbide Die','','frontend_hardcoded','reactjs-frontend-v1/src/app/components/stock_position/StockForm.tsx:16',0,'Legacy Stock form option; source warns it may not match the current persisted raw_material master.'),
+  ('product','10 G','','backend_seeder','nestjs-backend/src/modules/services/database-seeder.service.ts',0,'Seeded product reference. Use only if present in the live API master list.'),
+  ('product','12 G','','backend_seeder','nestjs-backend/src/modules/services/database-seeder.service.ts',0,'Seeded product reference. Use only if present in the live API master list.'),
+  ('product','16 G','','backend_seeder','nestjs-backend/src/modules/services/database-seeder.service.ts',0,'Seeded product reference. Use only if present in the live API master list.'),
+  ('product','20 G','','backend_seeder','nestjs-backend/src/modules/services/database-seeder.service.ts',0,'Seeded product reference. Use only if present in the live API master list.'),
+  ('status','Normal','','backend_seeder','nestjs-backend/src/modules/services/database-seeder.service.ts',0,'Seeded product status reference. Verify it remains active in the live API.'),
+  ('status','Annealed','','backend_seeder','nestjs-backend/src/modules/services/database-seeder.service.ts',0,'Seeded product status reference. Verify it remains active in the live API.'),
+  ('status','Non-Annealed','','backend_seeder','nestjs-backend/src/modules/services/database-seeder.service.ts',0,'Seeded product status reference. Verify it remains active in the live API.'),
+  ('operator','Nitesh','HB','backend_seeder','nestjs-backend/src/modules/services/database-seeder.service.ts',0,'Source seed name; verify current employment and live WBI master status before use.'),
+  ('operator','Abhishek','HB','backend_seeder','nestjs-backend/src/modules/services/database-seeder.service.ts',0,'Source seed name; verify current employment and live WBI master status before use.'),
+  ('operator','Ravi','HB','backend_seeder','nestjs-backend/src/modules/services/database-seeder.service.ts',0,'Source seed name; verify current employment and live WBI master status before use.'),
+  ('operator','Shivam','BW','backend_seeder','nestjs-backend/src/modules/services/database-seeder.service.ts',0,'Source seed name; verify current employment and live WBI master status before use.'),
+  ('operator','Sandeep','BW','backend_seeder','nestjs-backend/src/modules/services/database-seeder.service.ts',0,'Source seed name; verify current employment and live WBI master status before use.'),
+  ('operator','Sahil','BW','backend_seeder','nestjs-backend/src/modules/services/database-seeder.service.ts',0,'Source seed name; verify current employment and live WBI master status before use.'),
+  ('operator','Nirmal','BW','backend_seeder','nestjs-backend/src/modules/services/database-seeder.service.ts',0,'Source seed name; verify current employment and live WBI master status before use.'),
+  ('machine','HB 1','HB','backend_seeder','nestjs-backend/src/modules/services/database-seeder.service.ts',0,'Seeded machine reference. Verify it remains active in the live API.'),
+  ('machine','HB 2','HB','backend_seeder','nestjs-backend/src/modules/services/database-seeder.service.ts',0,'Seeded machine reference. Verify it remains active in the live API.'),
+  ('machine','BW 1','BW','backend_seeder','nestjs-backend/src/modules/services/database-seeder.service.ts',0,'Seeded machine reference. Verify it remains active in the live API.'),
+  ('machine','BW 2','BW','backend_seeder','nestjs-backend/src/modules/services/database-seeder.service.ts',0,'Seeded machine reference. Verify it remains active in the live API.'),
+  ('auth_role','dev','','business_reference','WBI_BUSINESS_AND_DATA_REFERENCE.md:194',0,'Role value only; no login-user record, name, or phone is included.'),
+  ('auth_role','manager','','business_reference','WBI_BUSINESS_AND_DATA_REFERENCE.md:194',0,'Role value only; no login-user record, name, or phone is included.'),
+  ('auth_role','operator','','business_reference','WBI_BUSINESS_AND_DATA_REFERENCE.md:194',0,'Role value only; no login-user record, name, or phone is included.'),
+  ('auth_role','stock-monitor','','business_reference','WBI_BUSINESS_AND_DATA_REFERENCE.md:194',0,'Role value only; no login-user record, name, or phone is included.'),
+  ('shift','Day','','business_reference','WBI_BUSINESS_AND_DATA_REFERENCE.md',0,'Shift label documented for dashboard splits; source does not provide a guaranteed live shift ID.'),
+  ('shift','Night','','business_reference','WBI_BUSINESS_AND_DATA_REFERENCE.md',0,'Shift label documented for dashboard splits; source does not provide a guaranteed live shift ID.'),
+  ('maintenance_type','planned','','business_reference','WBI_BUSINESS_AND_DATA_REFERENCE.md',0,'Documented maintenance type.'),
+  ('maintenance_type','unplanned','','business_reference','WBI_BUSINESS_AND_DATA_REFERENCE.md',0,'Documented maintenance type.'),
+  ('downtime_reason','Breakdown','','business_reference','WBI_BUSINESS_AND_DATA_REFERENCE.md',0,'Documented production form choice.'),
+  ('downtime_reason','Setup / Changeover','','business_reference','WBI_BUSINESS_AND_DATA_REFERENCE.md',0,'Documented production form choice.'),
+  ('downtime_reason','Material Shortage','','business_reference','WBI_BUSINESS_AND_DATA_REFERENCE.md',0,'Documented production form choice.'),
+  ('downtime_reason','No Operator','','business_reference','WBI_BUSINESS_AND_DATA_REFERENCE.md',0,'Documented production form choice.'),
+  ('downtime_reason','Maintenance','','business_reference','WBI_BUSINESS_AND_DATA_REFERENCE.md',0,'Documented production form choice.'),
+  ('downtime_reason','Power Cut','','business_reference','WBI_BUSINESS_AND_DATA_REFERENCE.md',0,'Documented production form choice.'),
+  ('downtime_reason','Other','','business_reference','WBI_BUSINESS_AND_DATA_REFERENCE.md',0,'Documented production form choice.'),
+  ('rejection_reason','Tensile Fail','','business_reference','WBI_BUSINESS_AND_DATA_REFERENCE.md',0,'Documented production form choice.'),
+  ('rejection_reason','Dimensional','','business_reference','WBI_BUSINESS_AND_DATA_REFERENCE.md',0,'Documented production form choice.'),
+  ('rejection_reason','Surface Defect','','business_reference','WBI_BUSINESS_AND_DATA_REFERENCE.md',0,'Documented production form choice.'),
+  ('rejection_reason','Coating Defect','','business_reference','WBI_BUSINESS_AND_DATA_REFERENCE.md',0,'Documented production form choice.'),
+  ('rejection_reason','Other','','business_reference','WBI_BUSINESS_AND_DATA_REFERENCE.md',0,'Documented production form choice.');

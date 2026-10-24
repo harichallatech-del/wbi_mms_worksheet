@@ -1,0 +1,141 @@
+WBI MMS — EXTENSIONS AND TOOLS RESEARCH
+Top 10 implementation TODOs
+Research checked: 23 October 2026
+Scope: the Manager, Stock Monitor and Operators workbooks; the supplied screen references; Google Sheets, Microsoft 365 Excel, forms, buttons, paginated lists, security, automation and dashboards.
+
+EXECUTIVE RECOMMENDATION
+
+Treat the workbook as a user interface and reporting surface. Keep the WBI API as the authority for records, identity and permissions. For the first operator pilot, choose one path: AppSheet if the team is Google-first, or Power Apps with Dataverse if the team is Microsoft-first and needs stronger offline support. Use Apps Script HTML Service or Office.js for the screenshot-style custom UI, and use a table library for richer search and paging. Do not let a third-party tool bypass the existing queued-write and WBI authorization path.
+
+RANKED TODO LIST
+
+1. Lock down the system-of-record and write path before adding connectors. [P0]
+   TODO: Document which API endpoints each role may read/write; keep workbook/add-in forms staging requests in the existing AS:BA queue; submit only through the allowlisted WBI queue process. Define what happens to rejected, duplicate and retried submissions. Add a stable request ID and visible queued/submitted/error state.
+   Why: Excel Online connector documentation warns that concurrent writes from Excel, Power Automate, Power Apps or other clients to one workbook are unsupported and can cause merge conflicts or inconsistent data. AppSheet also says security filters are not a complete security solution. A button or row filter is not authorization.
+   Sources:
+   - Excel Online (Business) limitations: https://learn.microsoft.com/en-au/connectors/excelonlinebusiness/
+   - AppSheet security filters: https://support.google.com/appsheet/answer/10104488?hl=en
+
+2. Pilot AppSheet for mobile operator entry on the Google path. [P1]
+   TODO: Prototype the BW/HB production and Maintenance forms with signed-in operators, server-validated operator/machine choices, required weights, downtime and quality fields. Test an operator's access with another operator's records. Measure initial sync, reconnect, duplicate-submit and stale-master-data behavior before rollout.
+   Why: AppSheet can provide mobile forms over spreadsheet-backed data and supports offline use after the device has launched online. Google warns that offline mode has important constraints, including interactions with security filters and formula-computed data. Enforce permissions at the WBI API/data source too.
+   Sources:
+   - Offline and sync: https://support.google.com/appsheet/answer/10107724?hl=en
+   - Security filters: https://support.google.com/appsheet/answer/10104488?hl=en
+   - AppSheet security: https://support.google.com/appsheet/answer/10105078?hl=en
+
+3. Evaluate Power Apps for a Microsoft-first operator app; use Dataverse if offline is a requirement. [P1]
+   TODO: Build a small production-entry prototype and compare it with AppSheet. Use the WBI API through an approved connector or a governed Dataverse layer; keep Excel for review and export. Confirm Entra sign-in, per-role permissions, licensing, delegation, sync and conflict handling with the tenant administrator.
+   Why: Power Apps can create custom gallery/form experiences. Microsoft says offline-first canvas apps require Dataverse; SharePoint and Excel connectors are not supported by that offline-first feature. Excel tables also have data-source and delegation constraints, so they are a limited pilot store rather than a robust multi-user transaction database.
+   Sources:
+   - Power Apps data sources: https://learn.microsoft.com/en-us/power-apps/maker/canvas-apps/working-with-data-sources
+   - Dataverse canvas-app architecture: https://learn.microsoft.com/en-us/power-platform/architecture/reference-architectures/dataverse-canvas-app
+   - Mobile offline limitations: https://learn.microsoft.com/en-us/power-apps/mobile/limitations-canvas-apps
+
+4. Build the Google screenshot-style experience with Apps Script HTML Service. [P1]
+   TODO: Add a responsive full-page Apps Script web app for Manager dashboard, stock, Admin Settings, Audit Log and Inquiries. Keep a compact bound sidebar for quick form entry. Use HTML/CSS/JavaScript components, asynchronous google.script.run calls, server-side validation and the existing queue; use clasp to version and deploy the modular project, and keep navigation and paging state in the UI.
+   Why: Apps Script supports menus, dialogs, sidebars and web apps. The screenshot is a full-width application shell; a sidebar is a narrow auxiliary panel, while a web app can own the full page. HTML Service is sandboxed, so external scripts/styles must use HTTPS. Split UI files and server functions by responsibility.
+   Sources:
+   - HTML Service: https://developers.google.com/apps-script/guides/html
+   - Dialogs and sidebars: https://developers.google.com/apps-script/guides/dialogs
+   - Client/server calls: https://developers.google.com/apps-script/guides/html/communication
+   - HTML Service restrictions: https://developers.google.com/apps-script/guides/html/restrictions
+
+5. Extend the Excel Office.js add-in with ribbon buttons and Fluent UI. [P1]
+   TODO: Turn the included task-pane scaffold into a production add-in. Add ribbon commands for Add Record, Refresh, Export and Open Dashboard; use Fluent UI React for consistent controls; bind forms to named tables and stage writes in AS:BA. Add role-specific views only after the WBI API authorizes them.
+   Why: Office Add-ins can add ribbon/context-menu commands, task panes and dialogs. Microsoft recommends Fluent UI React for React add-ins. The task pane remains an auxiliary panel; it cannot replace Excel's workbook chrome with the full-width screen in the image. Use Power Apps if a full application canvas is essential.
+   Sources:
+   - Excel add-ins overview: https://learn.microsoft.com/en-us/office/dev/add-ins/excel/excel-add-ins-overview
+   - Office Add-in UI elements: https://learn.microsoft.com/en-us/office/dev/add-ins/design/interface-elements
+   - Fluent UI and design: https://learn.microsoft.com/en-us/office/dev/add-ins/design/add-in-design
+   - Office Scripts workbook buttons: https://learn.microsoft.com/en-us/office/dev/scripts/develop/script-buttons
+
+6. Replace hand-built list rendering with Tabulator where richer tables are needed. [P2]
+   TODO: Prototype Tabulator for Stock Position, Manufacturing BW/HB, Maintenance, Audit Log and Inquiries. Configure date/status filters, sort, page size, row counters and export. Start with local paging only for bounded datasets; move to remote paging when the WBI API can return filtered pages and a total/next cursor.
+   Why: Tabulator provides filtering, sorting and local or remote server-side pagination with built-in page controls. This fits the screenshot tables and can run inside Apps Script HTML Service or the Office.js task pane. TanStack Table is an alternative when the UI is already React, but it is headless and requires you to build the visible controls yourself.
+   Sources:
+   - Tabulator pagination: https://www.tabulator.info/docs/6.x/page/
+   - Tabulator filtering: https://www.tabulator.info/docs/6.x/filter/
+   - TanStack Table pagination: https://tanstack.com/table/latest/docs/framework/react/guide/pagination
+
+7. Separate customer inquiry capture from operational records. [P2]
+   TODO: Make an external Contact Inquiry form with Jotform for conditional fields/file upload, or Google Forms/Microsoft Forms for a simpler no-frills form. Write submissions to a restricted raw-intake sheet or queue; normalize and review before creating WBI inquiry records. Test WhatsApp status and contact consent fields separately.
+   Why: Jotform documents native Google Sheets and Microsoft Excel integrations. Its Google Sheets integration may create a new worksheet in an existing spreadsheet, and its support notes warn that changing headers or applying filters can disrupt sync. Google Forms can save responses to Sheets; Microsoft Forms can open responses in Excel, with live workbook connection depending on how the form/workbook was created. Keep third-party form data out of manager/production tables until validated.
+   Sources:
+   - Jotform integrations: https://www.jotform.com/integrations/
+   - Jotform Google Sheets setup and limitations: https://www.jotform.com/help/228-how-to-integrate-forms-with-google-sheets/
+   - Google Forms response storage: https://support.google.com/docs/answer/2917686?hl=en-GB
+   - Microsoft Forms responses in Excel: https://support.microsoft.com/en-us/forms/how-do-i-export-my-form-responses
+
+8. Automate maintenance and stock alerts with Power Automate or Apps Script triggers. [P2]
+   TODO: Send a notification when downtime exceeds a threshold, a maintenance record is added, or stock crosses min/max. Add an approval for exceptional cost or downtime; add a daily digest and refresh-failure alert. Make every flow idempotent, log run IDs, and avoid simultaneous writers to the same Excel file.
+   Why: Power Automate can connect Excel and other services, but Microsoft's Excel connector warns against concurrent changes and notes throttling/file-lock limits. Apps Script supports installable form-submit and time-driven triggers, but Google quotas vary and may change. For multi-user writes, let the WBI API/data service own updates and let automation notify or dispatch work.
+   Sources:
+   - Excel Online (Business) connector limits: https://learn.microsoft.com/en-au/connectors/excelonlinebusiness/
+   - Power Automate with Excel: https://learn.microsoft.com/en-us/power-automate/flows-excel
+   - Apps Script installable triggers: https://developers.google.com/apps-script/guides/triggers/installable
+   - Apps Script quotas: https://developers.google.com/apps-script/guides/services/quotas
+
+9. Publish KPI dashboards from a curated reporting dataset. [P2]
+   TODO: Create a read-only metrics view for production by machine/operator/shift, stock/reorder state, scrap/rejection, downtime and maintenance cost. Use Power BI for a Microsoft estate or Looker Studio for a Google estate. Define OEE calculations once in the service/data layer; show data freshness and make role access explicit.
+   Why: Both products can provide richer visual reports than in-grid charts. Looker Studio's Sheets connector reads one worksheet per data source and expects tabular columns with consistent types. Power BI refresh behavior is tied to its semantic model and source refresh—not a guarantee that workbook and report values are identical at every moment.
+   Sources:
+   - Looker Studio Google Sheets connector: https://cloud.google.com/looker/docs/studio/connect-to-google-sheets
+   - Power BI refresh from OneDrive/SharePoint: https://learn.microsoft.com/en-us/power-bi/connect-data/refresh-desktop-file-onedrive
+
+10. Add formula and workflow quality gates; treat formula-audit add-ins as advisory. [P2]
+   TODO: Add deterministic checks for required tabs, headers, named tables, data validation, role visibility, formula ranges, queue shape and KPI totals. Try ExceLint on copies of Manager workbooks if a compatible Windows desktop Excel environment is available; do not install it on the live operational workbook without compatibility review. Require human review for any AI-generated edit.
+   Why: ExceLint detects formula patterns that differ from nearby formulas, but its public add-in instructions target Windows 10/Server 2016 and Office 365/Office 2016, so compatibility with current Excel must be verified. Recent spreadsheet-agent research shows substantial failure rates on realistic multi-sheet workflows; deterministic checks and review remain essential.
+   Sources:
+   - ExceLint project: https://github.com/ExceLint/ExceLint
+   - Microsoft Research paper summary: https://www.microsoft.com/en-us/research/publication/excelint-automatically-finding-spreadsheet-formula-errors/
+   - SpreadsheetBench 2: https://arxiv.org/abs/2606.29955
+   - FinSheet-Bench: https://arxiv.org/abs/2603.07316
+
+OPTIONAL PLATFORM COMPARISON
+
+Google-first: Apps Script HTML Service + clasp + Tabulator; AppSheet for quick mobile forms; Looker Studio for reports.
+Microsoft-first: Office.js + Fluent UI + Tabulator; Power Apps/Dataverse for mobile and offline operations; Power BI for reports.
+Cross-platform third party: Jotform for inquiry intake; evaluate Glide only for a small UI prototype. Glide's current Google Sheets page lists a 25,000-row limit across tables and says Sheets syncing is plan-dependent; advanced Apps Script/add-on behavior may not carry over. Do not use a low-code UI as the authorization boundary.
+
+Sources for comparison:
+- Google clasp CLI and versioned deployments: https://developers.google.com/apps-script/guides/clasp
+- Glide Google Sheets source, row limit and sync notes: https://www.glideapps.com/data-sources/google-sheets
+- Microsoft Power Apps canvas apps: https://learn.microsoft.com/en-us/power-apps/maker/canvas-apps/getting-started
+
+ARXIV AND RELATED RESEARCH
+
+1. SpreadsheetBench 2: Evaluating Agents on End-to-End Business Spreadsheet Workflows (2026), arXiv:2606.29955.
+   https://arxiv.org/abs/2606.29955
+   Evaluates generation, debugging and visualization over multi-sheet business workbooks. The paper reports low end-to-end accuracy and very weak debugging accuracy for evaluated agents. WBI implication: use an AI assistant for drafts and explanations, not unsupervised formula, audit or production writes.
+
+2. fxBench: Evaluating and Understanding Formula Suggestions in Spreadsheets (2026), arXiv:2610.24729.
+   https://arxiv.org/abs/2610.24729
+   Introduces 503 real spreadsheet formula-suggestion tasks; the best tested configuration reached 58.8% correct suggestions. WBI implication: inspect and approve formula suggestions; do not silently accept generated KPI or stock formulas.
+
+3. Auditing and Controlling AI Agent Actions in Spreadsheets (2026), arXiv:2604.20070.
+   https://arxiv.org/abs/2604.20070
+   Studies Pista, an agent design that exposes actions for user oversight. WBI implication: prefer reviewable, stepwise queue actions with visible before/after values and explicit approval.
+
+4. FinSheet-Bench: From Simple Lookups to Complex Reasoning, Where LLMs Break on Financial Spreadsheets (2026), arXiv:2603.07316.
+   https://arxiv.org/abs/2603.07316
+   Finds spreadsheet reasoning degrades as workbook structure and complexity grow, and argues against unsupervised model use for professional numeric work. WBI implication: derive OEE/stock totals deterministically and reconcile summary cards to source records.
+
+5. SpreadsheetBench: Towards Challenging Real World Spreadsheet Manipulation (2024), arXiv:2406.14991; NeurIPS 2024.
+   https://arxiv.org/abs/2406.14991
+   Uses 912 real spreadsheet questions and tests realistic layouts, multiple tables and non-textual structure. WBI implication: benchmark tools on the actual WBI role workbooks and screenshots, not on toy sheets.
+
+6. SpreadsheetLLM: Encoding Spreadsheets for Large Language Models (2024), arXiv:2407.09025.
+   https://arxiv.org/abs/2407.09025
+   Shows that spreadsheet structure, anchors and formats matter when a model reads a sheet. WBI implication: preserve clear headers, named tables, normalized source tables and role maps so automation has reliable context.
+
+7. ExceLint: Automatically Finding Spreadsheet Formula Errors (OOPSLA 2018; paper indexed by Microsoft Research).
+   https://www.microsoft.com/en-us/research/publication/excelint-automatically-finding-spreadsheet-formula-errors/
+   Uses formula-pattern anomalies to flag potential errors. WBI implication: formula linting can be a useful warning layer, but it is not a substitute for tests, review or WBI API reconciliation.
+
+RESEARCH LIMITS AND ADOPTION NOTES
+
+- This is a fit-ranked shortlist, not a paid-product endorsement. Verify current tenant licensing, regional availability, data residency, privacy terms, security review and support before procurement.
+- Vendor product pages can change. The source links above are direct vendor documentation/product pages; research links point to arXiv or the publisher/research lab.
+- The most important architecture decision is where writes and authorization live. Add-ons, Apps Script, low-code apps, and buttons improve the UI; they do not replace WBI's server-side permissions.
+- The studies evaluate particular agents/benchmarks. Their results inform cautious design; they are not a direct performance test of this WBI project.
